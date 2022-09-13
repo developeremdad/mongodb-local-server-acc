@@ -43,24 +43,22 @@ module.exports.getToolDetail = async (req, res, next) => {
 };
 
 module.exports.updateTool = async (req, res, next) => {
-  // try {
-  //   const db = getDb();
-  //   const objId = {_id: ObjectId(req.params)};
-  //   const newData = req.body;
-  // } catch (error) {
-  //   next(error)
-  // }
-  // const newData = req.body;
-  const { id } = req.params;
-  const filter = { _id: id };
-  const newData = tools.find(tool => tool.id === Number(id));
-  console.log(newData);
-
-  newData.id = id;
-  newData.name = req.body.name;
-
-  res.send(newData);
-
+  try {
+    const db = getDb();
+    const {id} = req.params;
+    if (! ObjectId.isValid(id)) {
+      return res.status(400).json({success: false, message: 'Please insert valid id.'});
+    }
+    else{
+      const result = await db.collection("tools").updateOne({ _id: ObjectId(id) },{$set: req.body});
+      if(! result.modifiedCount){
+        return res.status(400).json({success: false, message: 'Data upto date.'})
+      }
+      res.status(200).json({ success: true, message: "Successfully updated."});
+    }
+  } catch (error) {
+    next(error)
+  }
 };
 
 module.exports.deleteTool = (req, res) => {
