@@ -61,12 +61,22 @@ module.exports.updateTool = async (req, res, next) => {
   }
 };
 
-module.exports.deleteTool = (req, res) => {
-  const { id } = req.params;
-  const filter = { _id: id };
-
-  tools = tools.filter(tool => tool.id !== Number(id));
-  console.log(tools);
-
-  res.send(tools);
+module.exports.deleteTool = async (req, res, next) => {
+  try {
+    const db = getDb();
+    const {id} = req.params;
+    if (! ObjectId.isValid(id)) {
+      return res.status(400).json({success: false, message: 'Please insert valid id.'});
+    }
+    else{
+      const result = await db.collection("tools").deleteOne({ _id: ObjectId(id) });
+      console.log(result);
+      if(! result.deletedCount){
+        return res.status(400).json({success: false, message: 'Data can not found.'});
+      }
+      res.status(200).json({ success: true, message: "Successfully deleted."});
+    }
+  } catch (error) {
+    next(error)
+  }
 };
